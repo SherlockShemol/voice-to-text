@@ -1,0 +1,37 @@
+name: VoiceToText
+options:
+  deploymentTarget:
+    macOS: "13.0"
+  xcodeVersion: "15.0"
+packages:
+  GRDB:
+    url: https://github.com/groue/GRDB.swift.git
+    from: "7.0.0"
+targets:
+  VoiceToText:
+    type: application
+    platform: macOS
+    deploymentTarget: "13.0"
+    sources:
+      - path: Sources/VoiceToText
+        type: group
+        excludes:
+          - "*.xcassets"
+          - "Resources/*"
+    resources:
+      - path: Sources/VoiceToText/Resources/polish_prompt
+    dependencies:
+      - package: GRDB
+        product: GRDB
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.voicetotext.app
+        INFOPLIST_FILE: Info.plist
+        PRODUCT_NAME: "Voice to Text"
+        GENERATE_INFOPLIST_FILE: NO
+        MARKETING_VERSION: "1.0.0"
+        CURRENT_PROJECT_VERSION: "1"
+        LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/../Frameworks"
+        SWIFT_VERSION: "5.0"
+        CODE_SIGN_STYLE: Automatic
+        COMBINE_HIDPI_IMAGES: YES

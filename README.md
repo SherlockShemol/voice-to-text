@@ -19,6 +19,13 @@
 - CryptoKit — AES-256-GCM 加密
 - Accessibility API — 焦点检测与自动粘贴
 
+## 技术路线
+
+- **Fn 键全局监听** — 使用 [CGEvent Tap](https://developer.apple.com/documentation/coregraphics/cgeventtap) 监听 `flagsChanged`，在独立线程 RunLoop 中运行；仅当 `event.flags.contains(.maskSecondaryFn)` 且无其他修饰键时触发按下/松开，避免与快捷键冲突。实现见 `Services/KeyboardMonitor.swift`，依赖辅助功能权限。
+- **焦点是否在输入框** — 使用 [Accessibility API](https://developer.apple.com/documentation/accessibility)：`AXUIElementCreateSystemWide()` → `kAXFocusedApplicationAttribute` → `kAXFocusedUIElementAttribute` 获取当前焦点元素，再根据 `kAXRoleAttribute` 判断是否为 `AXTextField` / `AXTextArea` / `AXComboBox`。实现见 `Services/FocusedInputHelper.swift`。
+- **自动输入到焦点** — 若焦点在输入框：先将转录结果写入 `NSPasteboard`，再通过 `CGEvent` 构造并 `post` 模拟 **Cmd+V**，实现「自动粘贴」；否则弹出浮窗供复制。实现见 `Services/ClipboardService.swift`。
+- **录音 → 转录 → 润色流水线** — 录音（`AudioRecorderService`）→ 智谱 ASR（`BigModelService`）→ 可选 Deepseek 润色（`DeepseekService`）→ 结果经焦点检测后自动输入或弹窗。流水线见 `Services/SpeechProcessor.swift` 与 `AppState.swift`。
+
 ## API 依赖
 
 | 服务 | 用途 | 必需 |
@@ -26,7 +33,13 @@
 | [智谱 BigModel](https://open.bigmodel.cn/) | 语音转文字 (GLM-ASR-2512) | 是 |
 | [Deepseek](https://platform.deepseek.com/) | 文本润色 (deepseek-chat) | 否 |
 
+## 下载
+
+在 [GitHub Releases](https://github.com/SherlockShemol/voice-to-text/releases) 选择最新版本，下载 **VoiceToText-macOS.dmg**，打开后将 **Voice to Text.app** 拖入「应用程序」即可。首次运行需在 **系统设置 → 隐私与安全性** 中授予 **麦克风** 与 **辅助功能** 权限。
+
 ## 构建与运行
+
+**方式一：Swift Package Manager**
 
 ```bash
 # 克隆仓库
@@ -38,6 +51,17 @@ swift build
 
 # 运行
 swift run
+```
+
+**方式二：Xcode（可打包为 .app）**
+
+使用 [XcodeGen](https://github.com/yonaskolb/XcodeGen) 生成工程后归档导出：
+
+```bash
+brew install xcodegen
+xcodegen generate
+open VoiceToText.xcodeproj
+# 在 Xcode 中 Product → Archive → Distribute App
 ```
 
 ## 权限要求

@@ -78,6 +78,11 @@ final class AppState: ObservableObject {
     }
 
     private var promptFileURL: URL? {
+        // 1) .app 打包：资源在 App Bundle 的 Contents/Resources
+        if let inBundle = Bundle.main.url(forResource: "polish_prompt", withExtension: nil) {
+            return inBundle
+        }
+        // 2) 开发时从仓库根目录运行（如 swift run）
         if let projectRoot = projectRootURL {
             let projectFile = projectRoot
                 .appendingPathComponent("Sources/VoiceToText/Resources")
@@ -86,7 +91,12 @@ final class AppState: ObservableObject {
                 return projectFile
             }
         }
+        // 3) SPM 构建（如 swift run）：仅在 SPM 环境下使用 Bundle.module，Xcode App 构建时无此 API
+        #if SWIFT_PACKAGE
         return Bundle.module.url(forResource: "polish_prompt", withExtension: nil)
+        #else
+        return nil
+        #endif
     }
 
     private func loadPrompt() {

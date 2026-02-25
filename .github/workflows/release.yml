@@ -1,0 +1,62 @@
+# 发布 Release 时构建 macOS .app 并打包为 DMG 上传
+name: Release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-13
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve Swift packages
+        run: |
+          xcodebuild -scheme VoiceToText -configuration Release -resolvePackageDependencies \
+            -derivedDataPath build
+
+      - name: Build
+        run: |
+          xcodebuild -scheme VoiceToText -configuration Release build \
+            -derivedDataPath build \
+            -destination 'platform=macOS' \
+            CODE_SIGN_IDENTITY="-"
+
+      - name: Create DMG
+        run: |
+          APP_NAME="Voice to Text.app"
+          DMG_NAME="VoiceToText-macOS"
+          VOLUME_NAME="Voice to Text"
+          SRC="build/Build/Products/Release/$APP_NAME"
+          DMG_TMP="$GITHUB_WORKSPACE/${DMG_NAME}-tmp.dmg"
+          DMG_OUT="$GITHUB_WORKSPACE/${DMG_NAME}.dmg"
+
+          # 创建临时可写 DMG
+          hdiutil create -volname "$VOLUME_NAME" -srcfolder "$SRC" -ov -format UDRW -size 50m "$DMG_TMP"
+          MOUNT=$(hdiutil attach -nobrowse -readwrite -noverify "$DMG_TMP" | tail -1 | awk '{print $3}')
+
+          # 可选：在镜像内创建「应用程序」快捷方式，方便用户拖拽
+          ln -s /Applications "$MOUNT/Applications"
+
+          hdiutil detach "$MOUNT" -quiet
+          # 转为只读压缩 DMG
+          hdiutil convert "$DMG_TMP" -format UDZO -imagekey zlib-level=9 -o "$DMG_OUT"
+          rm -f "$DMG_TMP"
+
+      - name: Upload to Release (on release event)
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: VoiceToText-macOS.dmg
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload artifact (manual run)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: VoiceToText-macOS
+          path: VoiceToText-macOS.dmg

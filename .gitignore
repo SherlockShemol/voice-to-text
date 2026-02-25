@@ -1,6 +1,7 @@
 .build/
 .swiftpm/
 *.xcodeproj
+!VoiceToText.xcodeproj
 *.xcworkspace
 xcuserdata/
 DerivedData/
