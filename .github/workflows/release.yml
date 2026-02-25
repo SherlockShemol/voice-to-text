@@ -14,14 +14,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
+
       - name: Resolve Swift packages
         run: |
-          xcodebuild -scheme VoiceToText -configuration Release -resolvePackageDependencies \
-            -derivedDataPath build
+          xcodebuild -project VoiceToText.xcodeproj -scheme VoiceToText -configuration Release \
+            -resolvePackageDependencies -derivedDataPath build
 
       - name: Build
         run: |
-          xcodebuild -scheme VoiceToText -configuration Release build \
+          xcodebuild -project VoiceToText.xcodeproj -scheme VoiceToText -configuration Release build \
             -derivedDataPath build \
             -destination 'platform=macOS' \
             CODE_SIGN_IDENTITY="-"
