@@ -40,7 +40,7 @@ struct MenuBarView: View {
 
             Divider()
 
-            Text("版本 1.0.0")
+            Text("版本 0.0.1")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
                 .padding(.horizontal, 12)

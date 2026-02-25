@@ -35,7 +35,7 @@
 
 ## 下载
 
-在 [GitHub Releases](https://github.com/SherlockShemol/voice-to-text/releases) 选择最新版本，下载 **VoiceToText-macOS.dmg**，打开后将 **Voice to Text.app** 拖入「应用程序」即可。首次运行需在 **系统设置 → 隐私与安全性** 中授予 **麦克风** 与 **辅助功能** 权限。
+在 [GitHub Releases](https://github.com/SherlockShemol/voice-to-text/releases) 选择最新版本，下载 **VoiceToText-macOS.dmg**，打开后将 **Voice to Text.app** 拖入「应用程序」即可。首次运行需在 **系统设置 → 隐私与安全性** 中授予 **麦克风** 与 **辅助功能** 权限。新版本通过 push 版本 tag 自动发布带 .dmg 的 Release。
 
 ## 构建与运行
 
